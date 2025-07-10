@@ -599,6 +599,96 @@ export default class Sidebar {
       }
     }
 
+    // Right-click context menu for copying field paths
+    {
+      label.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+
+        // Remove any existing context menu
+        let existingMenu = document.querySelector(".field-context-menu");
+        if (existingMenu) {
+          existingMenu.remove();
+        }
+
+        // Create context menu
+        let contextMenu = document.createElement("div");
+        contextMenu.className = "field-context-menu";
+        contextMenu.style.position = "fixed";
+        contextMenu.style.left = event.clientX + "px";
+        contextMenu.style.top = event.clientY + "px";
+        contextMenu.style.background = window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "#2d2d2d"
+          : "#ffffff";
+        contextMenu.style.border =
+          "1px solid " + (window.matchMedia("(prefers-color-scheme: dark)").matches ? "#555" : "#ccc");
+        contextMenu.style.borderRadius = "4px";
+        contextMenu.style.padding = "4px 0";
+        contextMenu.style.zIndex = "10000";
+        contextMenu.style.minWidth = "200px";
+        contextMenu.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
+
+        // Create menu items
+        let copyTitleItem = document.createElement("div");
+        copyTitleItem.className = "field-context-menu-item";
+        copyTitleItem.style.padding = "8px 16px";
+        copyTitleItem.style.cursor = "pointer";
+        copyTitleItem.style.fontSize = "13px";
+        copyTitleItem.innerText = `Copy "${title}" to clipboard`;
+        copyTitleItem.addEventListener("mouseenter", () => {
+          copyTitleItem.style.background = window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "rgba(255, 255, 255, 0.1)"
+            : "rgba(0, 0, 0, 0.05)";
+        });
+        copyTitleItem.addEventListener("mouseleave", () => {
+          copyTitleItem.style.background = "transparent";
+        });
+        copyTitleItem.addEventListener("click", () => {
+          navigator.clipboard.writeText(title).catch((error) => {
+            console.error("Failed to copy to clipboard:", error);
+          });
+          contextMenu.remove();
+        });
+
+        let copyFullTitleItem = document.createElement("div");
+        copyFullTitleItem.className = "field-context-menu-item";
+        copyFullTitleItem.style.padding = "8px 16px";
+        copyFullTitleItem.style.cursor = "pointer";
+        copyFullTitleItem.style.fontSize = "13px";
+        copyFullTitleItem.innerText = `Copy "${fullTitle}" to clipboard`;
+        copyFullTitleItem.addEventListener("mouseenter", () => {
+          copyFullTitleItem.style.background = window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "rgba(255, 255, 255, 0.1)"
+            : "rgba(0, 0, 0, 0.05)";
+        });
+        copyFullTitleItem.addEventListener("mouseleave", () => {
+          copyFullTitleItem.style.background = "transparent";
+        });
+        copyFullTitleItem.addEventListener("click", () => {
+          navigator.clipboard.writeText(fullTitle).catch((error) => {
+            console.error("Failed to copy to clipboard:", error);
+          });
+          contextMenu.remove();
+        });
+
+        contextMenu.appendChild(copyTitleItem);
+        contextMenu.appendChild(copyFullTitleItem);
+        document.body.appendChild(contextMenu);
+
+        // Close menu when clicking elsewhere
+        let closeMenu = (e: Event) => {
+          if (!contextMenu.contains(e.target as Node)) {
+            contextMenu.remove();
+            document.removeEventListener("click", closeMenu);
+            document.removeEventListener("contextmenu", closeMenu);
+          }
+        };
+        setTimeout(() => {
+          document.addEventListener("click", closeMenu);
+          document.addEventListener("contextmenu", closeMenu);
+        }, 0);
+      });
+    }
+
     // Full key fields
     if (field.fullKey !== null) {
       // Dragging support
